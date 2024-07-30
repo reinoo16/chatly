@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatly - Chat App</title>
+    <!-- socket io -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"
+        integrity="sha512-luMnTJZ7oEchNDZAtQhgjomP1eZefnl82ruTH/3Oj/Yu5qYtwL7+dVRccACS/Snp1lFXq188XFipHKYE75IaQQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        green: '#2CBDA7',
+                        white50: 'rgba(255,255,255,0.5)',
+                        black: '#121317',
+                        grey: '#191A1E',
+                    },
+                    screens: {
+                        'xs': '480px', // Küçük ekranlar
+                        'sm': '640px', // Küçük ve orta ekranlar
+                        'md': '768px', // Orta ekranlar
+                        'lg': '1024px', // Büyük ekranlar
+                        'xl': '1280px', // Çok büyük ekranlar
+                        '2xl': '1536px', // Ekstra büyük ekranlar
+                    },
+                }
+            }
+        }
+    </script>
+    <!-- font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Nunito', sans-serif;
+            margin: 0;
+            padding: 0;
+            text-decoration: none;
+            list-style-type: none;
+        }
+
+        .chat-area {
+            scrollbar-width: thin;
+            scrollbar-color: #2CBDA7 #121317;
+        }
+    </style>
+</head>
+
+<body class="bg-black">
+    <section class="relative flex items-center justify-center w-full h-screen p-[40px_20px]">
+        <div class="relative flex flex-col items-center justify-between gap-[20px] md:w-[640px] h-full w-full">
+            <img class="h-[60px]" src="./images/logo.png" alt="chatly logo">
+            <div
+                class="chat-area h-full relative p-[25px] sm:p-[35px] bg-grey rounded-[20px] md:min-h-[620px] max-h-[620px] break-words w-full overflow-y-scroll overflow-x-hidden">
+                <ul class="flex flex-col items-start gap-[20px] w-full">
+                </ul>
+                <ul class="absolute bottom-[35px] left-[35px] hidden flex-col items-center justify-center gap-[6px] w-fit p-[10px_24px] bg-green rounded-[8px]"
+                    id="feedback">
+                </ul>
+            </div>
+            <form id="form" class="w-full" action="">
+                <div class="flex flex-col gap-[20px] w-full">
+                    <div class="flex flex-col sm:flex-row gap-[10px] w-full">
+                        <input id="nameInput"
+                            class="w-full sm:max-w-[178px] h-[40px] px-[10px] rounded-[8px] transition-all duration-300 border-[1px] border-transparent focus:border-green outline-none bg-grey text-white text-[16px] placeholder:font-light"
+                            placeholder="Kullanıcı Adı" maxlength="25" type="text">
+                        <input id="messageInput"
+                            class="w-full h-[40px] px-[10px] rounded-[8px] transition-all duration-300 border-[1px] border-transparent focus:border-green outline-none bg-grey text-white text-[16px] placeholder:font-light"
+                            placeholder="Mesaj" type="text">
+                    </div>
+                    <div class="flex gap-[10px] w-full">
+                        <button id="submitBtn"
+                            class="w-full h-[48px] bg-green rounded-[8px] text-center text-[16px] font-bold text-white"
+                            type="submit">Gönder</button>
+                        <label
+                            class="flex items-center justify-center cursor-pointer transition-all duration-300 hover:bg-green w-[60px] h-[48px] rounded-[8px] border-[1px] border-green"
+                            for="imageInput">
+                            <svg width="20" height="21" viewBox="0 0 20 21" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <g clip-path="url(#clip0_278_44)">
+                                    <path
+                                        d="M7.50293 7.37891C7.50293 7.87619 7.30539 8.3531 6.95375 8.70473C6.60212 9.05636 6.12521 9.25391 5.62793 9.25391C5.13065 9.25391 4.65373 9.05636 4.3021 8.70473C3.95047 8.3531 3.75293 7.87619 3.75293 7.37891C3.75293 6.88163 3.95047 6.40471 4.3021 6.05308C4.65373 5.70145 5.13065 5.50391 5.62793 5.50391C6.12521 5.50391 6.60212 5.70145 6.95375 6.05308C7.30539 6.40471 7.50293 6.88163 7.50293 7.37891Z"
+                                        fill="white" />
+                                    <path
+                                        d="M1.875 3.00391C1.37772 3.00391 0.900805 3.20145 0.549175 3.55308C0.197544 3.90471 0 4.38163 0 4.87891L0 16.1289C0 16.6262 0.197544 17.1031 0.549175 17.4547C0.900805 17.8064 1.37772 18.0039 1.875 18.0039H18.125C18.6223 18.0039 19.0992 17.8064 19.4508 17.4547C19.8025 17.1031 20 16.6262 20 16.1289V4.87891C20 4.38163 19.8025 3.90471 19.4508 3.55308C19.0992 3.20145 18.6223 3.00391 18.125 3.00391H1.875ZM18.125 4.25391C18.2908 4.25391 18.4497 4.31975 18.5669 4.43696C18.6842 4.55417 18.75 4.71315 18.75 4.87891V12.3789L14.0312 9.94516C13.914 9.88644 13.7813 9.86607 13.6519 9.88693C13.5224 9.90779 13.4028 9.96883 13.31 10.0614L8.6725 14.6989L5.3475 12.4839C5.22745 12.404 5.08345 12.368 4.93992 12.3822C4.79639 12.3963 4.66217 12.4596 4.56 12.5614L1.2525 15.5039V16.1789L1.25 16.1289V4.87891C1.25 4.71315 1.31585 4.55417 1.43306 4.43696C1.55027 4.31975 1.70924 4.25391 1.875 4.25391H18.125Z"
+                                        fill="white" />
+                                </g>
+                                <defs>
+                                    <clipPath id="clip0_278_44">
+                                        <rect width="20" height="20" fill="white" transform="translate(0 0.503906)" />
+                                    </clipPath>
+                                </defs>
+                            </svg>
+                        </label>
+                        <input class="hidden" id="imageInput" type="file">
+                    </div>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <script src="./chat.js"></script>
+</body>
+
+</html>
